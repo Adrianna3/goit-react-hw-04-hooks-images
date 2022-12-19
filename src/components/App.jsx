@@ -1,4 +1,4 @@
-import React, { Component, useState } from 'react';
+import React, { useState,useEffect, useCallback  } from 'react';
 import styles from './App.module.css';
 import * as api from 'services/fetchImagesWithQuery';
 import { Searchbar } from './Searchbar/Searchbar';
@@ -7,13 +7,14 @@ import { Button } from './Button/Button';
 import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
 
-const App = () => {
+export const App = () => {
   const [images, setImages] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [foundImages, setFoundImages] = useState(null);
+  const [totalImages, setTotalImages] = useState(0);
+  const [currentLargeImg, setCurrentLargeImg] = useState(null);
   // state = {
   //   images: [],
   //   searchQuery: '',
@@ -24,17 +25,17 @@ const App = () => {
   //   currentLargeImg: null,
   // }
 
-  setInitialParams = (searchQuery) => {
-    if (searchQuery === '') {
+  const setInitialParams = (query) => {
+    if (query === '') {
       return alert('Enter the search value!')
     }
 
-    if (searchQuery === setSearchQuery) {
+    if (query === searchQuery) {
       return;
     }
 
     setImages([]);
-    setSearchQuery("");
+    setSearchQuery(query);
     setPage(1);
     
 
@@ -54,6 +55,10 @@ const App = () => {
     setIsLoading(true);
 
     try {
+      if (!searchQuery) {
+        return;
+      }
+
       const data = await api.fetchImagesWithQuery(searchQuery, page);
       const { hits: newImages, totalHits } = data;
 
@@ -65,44 +70,40 @@ const App = () => {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [searchQuery, page],
+  );
 
-  openModal = (src, alt) => {
-    this.setState(state => ({ ...state, currentLargeImg: { src, alt } }));
-  }
+ const openModal = (src, alt) => {
+   setCurrentLargeImg({ src, alt });
+ }
 
-  closeModal = (evt) => {
-    this.setState({ currentLargeImg: null });
-  }
+  const closeModal = (evt) => {
+    setCurrentLargeImg(null);
+  };
 
-  componentDidUpdate(_, prevState) {
-    if (prevState.page !== this.state.page || prevState.searchQuery !== this.state.searchQuery) {
-      const { searchQuery, page } = this.state;
-      this.addImages(searchQuery, page);
-    }
-  }
-
- 
-
+  useEffect(() => {
+    addImages();
+  }, [addImages]);
+   
+  const { app } = styles;
   return (
     <div className={app}>
-      <Searchbar onSubmit={this.setInitialParams} />
+      <Searchbar onSubmit={setInitialParams} />
       {error && <p>Whoops, something went wrong: {error.message}</p>}
       {isLoading && <Loader />}
       {images.length > 0 &&
         <>
           <ImageGallery
             items={images}
-            openModal={this.openModal}
+            openModal={openModal}
           />
-          {images.length < foundImages &&
-            <Button loadMore={this.loadMore} />
+          {images.length < totalImages &&
+            <Button loadMore={loadMore} />
           }
         </>
       }
-      {currentLargeImg && <Modal closeModal={this.closeModal} imgData={currentLargeImg} />}
+      {currentLargeImg && <Modal closeModal={closeModal} imgData={currentLargeImg} />}
     </div>
   );
-};
+}
 
-export default App;
