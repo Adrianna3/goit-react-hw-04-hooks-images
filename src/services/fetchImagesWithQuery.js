@@ -1,6 +1,6 @@
-import axios from "axios";
+import axios from 'axios';
 
-axios.defaults.baseURL = "https://pixabay.com/api/";
+axios.defaults.baseURL = 'https://pixabay.com/api/';
 
 export const fetchImagesWithQuery = async (searchQuery, page) => {
   try {
@@ -14,7 +14,7 @@ export const fetchImagesWithQuery = async (searchQuery, page) => {
       per_page: 12,
       page,
     });
-  
+
     const response = await axios.get(`?${params}`);
     return response.data;
   } catch (error) {
