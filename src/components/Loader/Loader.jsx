@@ -3,7 +3,7 @@ import styles from './Loader.module.css';
 import { RotatingLines } from 'react-loader-spinner';
 
 export const Loader = () => {
-  const {loader} = styles;
+  const { loader } = styles;
 
   return (
     <div className={loader}>
@@ -16,7 +16,7 @@ export const Loader = () => {
         visible={true}
       />
     </div>
-  )
-}
+  );
+};
 
 export default Loader;
